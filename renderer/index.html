@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AISolidWorks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0d1117; --panel:#161b22; --acc:#58a6ff; --muted:#8b949e; --text:#c9d1d9; --code:#0d1117;
+      --border:#30363d; --warn:#d29922; --danger:#f85149; --ok:#3fb950;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--text); background:linear-gradient(180deg,#0b0c10 0%,#0d1117 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .app{
+      height:100%; display:flex; flex-direction:column; gap:12px; padding:16px;
+    }
+    .titlebar{
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .logo{ width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,#22d3ee,#2dd4bf); box-shadow:0 0 30px rgba(45,212,191,.3); }
+    .brand h1{ font-size:18px; margin:0; letter-spacing:.2px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .actions{ display:flex; gap:8px; }
+    button{
+      border:none; border-radius:12px; padding:10px 14px; cursor:pointer; color:#0b0c10; background:#e5e7eb;
+      transition:transform .05s ease, opacity .2s ease, filter .2s ease;
+    }
+    button.primary{ background:linear-gradient(135deg,#22d3ee,#2dd4bf); color:#021012; font-weight:600; }
+    button.ghost{ color:var(--text); background:transparent; border:1px solid var(--border); }
+    button:disabled{ opacity:.5; cursor:not-allowed; }
+    button:active{ transform:translateY(1px) }
+    .status{
+      display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .dot{ width:8px; height:8px; border-radius:999px; background:var(--muted); }
+    .dot.ok{ background:var(--ok); box-shadow:0 0 10px rgba(34,197,94,.6); }
+    .dot.run{ background:var(--warn); box-shadow:0 0 10px rgba(245,158,11,.6); }
+    .split{
+      display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-height:0; /* allow children to shrink */
+    }
+    @media (max-width: 1100px){
+      .split{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background:rgba(18,19,24,.8); border:1px solid var(--border); border-radius:var(--radius); padding:14px; min-height:260px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .card h3{ margin:6px 0 12px; font-size:14px; color:#cbd5e1; letter-spacing:.3px; font-weight:600; font-family: 'Times New Roman', Times, serif; }
+    textarea{
+      width:100%; height:140px; resize:vertical; padding:12px; border-radius:12px; border:1px solid var(--border);
+      background:#0d1117; color:var(--text); font-size:14px; line-height:1.4;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .toolbar{ display:flex; gap:8px; align-items:center; justify-content:space-between; margin:10px 0 6px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .kbd{
+      background:#0f172a; color:#e2e8f0; border:1px solid #1e293b; border-bottom-width:2px; border-radius:6px; padding:2px 6px; font-size:12px;
+    }
+    .codewrap{
+      position:relative; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--code);
+    }
+    pre{
+      margin:0; padding:12px; overflow:auto; font-family: 'JetBrains Mono', monospace;
+      font-size:12.5px; line-height:1.45; color:#d1d5db; tab-size:2;
+    }
+    .copybtn{
+      position:absolute; top:8px; right:8px; font-size:12px; padding:6px 10px; border-radius:10px;
+      background:#0b0c10; color:#cbd5e1; border:1px solid var(--border);
+    }
+    .console{
+      height:220px; background:#0a0a0a; border:1px solid var(--border); border-radius:12px; overflow:auto; padding:10px;
+      font-family: 'JetBrains Mono', monospace; font-size:12.5px; color:#c9d1d9;
+      box-shadow: inset 0 8px 24px rgba(0,0,0,.35);
+    }
+    .muted{ color:var(--muted); }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .spinner{
+      width:14px; height:14px; border:2px solid rgba(255,255,255,.2); border-top-color:#fff; border-radius:50%;
+      animation:spin .9s linear infinite; display:inline-block;
+    }
+    @keyframes spin{ to { transform: rotate(360deg); } }
+    .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+    .chip{ font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:#cbd5e1; background:#0f1115; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <div class="titlebar">
+      <div class="brand">
+        <div class="logo"></div>
+        <h1>AISolidWorks</h1>
+        <div class="chips">
+          <span class="chip">MVP</span>
+          <span class="chip">Template-first</span>
+          <span class="chip">AI-Powered</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="status"><span id="statusDot" class="dot"></span><span id="statusText">Ready</span></div>
+        <button id="previewBtn" class="ghost">Preview <span class="kbd">Ctrl+Enter</span></button>
+        <button id="runBtn" class="primary">Execute <span class="kbd">Ctrl+Shift+Enter</span></button>
+        <button id="settingsBtn" class="ghost">Settings</button>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="card">
+        <h3>Design Prompt</h3>
+        <textarea id="prompt" spellcheck="false" placeholder="Describe your SolidWorks design...&#10;Example: Create a 120x80x25 mm box on front plane. Add 8 mm fillet to all edges."></textarea>
+        <div class="toolbar">
+          <div class="muted">💡 Include dimensions, planes, and operations</div>
+          <div class="muted"><span class="kbd">Ctrl+Enter</span> preview • <span class="kbd">Ctrl+Shift+Enter</span> execute</div>
+        </div>
+      </div>
+
+      <div class="card" style="gap:16px;">
+        <div>
+          <h3 style="display:inline-block; margin-right:12px;">Execution Plan</h3>
+          <span id="planBadges" class="muted"></span>
+        </div>
+        <div class="codewrap">
+          <button class="copybtn" data-copy-target="plan">Copy Plan</button>
+          <pre id="plan">// Plan will appear here after preview</pre>
+        </div>
+
+        <h3>Generated VBScript</h3>
+        <div class="codewrap">
+          <button class="copybtn" data-copy-target="code">Copy Code</button>
+          <pre id="code">// VBScript will be generated here</pre>
+        </div>
+
+        <h3>Validation & Warnings</h3>
+        <div class="codewrap">
+          <button class="copybtn" data-copy-target="warnings">Copy</button>
+          <pre id="warnings" class="muted">No warnings detected</pre>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-shrink: 0;">
+      <div class="row" style="margin:0 0 12px 0;">
+        <h3 style="margin:0; font-size:15px;">Execution Log</h3>
+        <span id="runSpinner" class="spinner" style="display:none;"></span>
+      </div>
+      <div id="logs" class="console">➤ System ready. Enter a design prompt to begin...</div>
+    </div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>
