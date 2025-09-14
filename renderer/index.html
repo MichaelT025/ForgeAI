@@ -1,156 +1,224 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>AISolidWorks</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ForgeAI</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular']
+          },
+          colors: {
+            night: {
+              950: '#0A0B0F',
+              900: '#0E1117',
+              850: '#11131B',
+              800: '#141824',
+              700: '#1A2030',
+              600: '#232B3A',
+              500: '#2E394D'
+            },
+            ember: {
+              500: '#FF4D16', /* hot orange */
+            },
+            mag: { 500: '#A855F7' },
+            steel: { 300:'#A6B3C7', 400:'#94A3B8', 500:'#64748B' }
+          },
+          boxShadow: {
+            forge: '0 10px 30px -10px rgba(242,56,12,.35), 0 1px 0 0 rgba(255,255,255,.02) inset'
+          },
+          backgroundImage: {
+            forge: 'radial-gradient(1200px 600px at 10% -10%, rgba(255,77,22,0.18), transparent 60%), radial-gradient(1000px 500px at 110% 10%, rgba(168,85,247,0.12), transparent 60%)'
+          },
+          keyframes: {
+            shear: { '0%': { backgroundPosition:'0% 50%' }, '100%': { backgroundPosition:'200% 50%' } }
+          },
+          animation: { shear: 'shear 8s linear infinite' }
+        }
+      }
+    }
+  </script>
+
   <style>
-    :root{
-      --bg:#0d1117; --panel:#161b22; --acc:#58a6ff; --muted:#8b949e; --text:#c9d1d9; --code:#0d1117;
-      --border:#30363d; --warn:#d29922; --danger:#f85149; --ok:#3fb950;
-      --radius:14px;
+    body { font-family: Inter, sans-serif; }
+    .code-block { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace; }
+    .brand-gradient {
+      background: linear-gradient(100deg, #FF4D16, #FF7A2F, #F97316, #A855F7 80%);
+      background-size: 200% 200%;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; color:var(--text); background:linear-gradient(180deg,#0b0c10 0%,#0d1117 100%);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    .brand-text {
+      background: linear-gradient(100deg, #fff, #FFD6C2 25%, #FFB07A 45%, #EAB308 60%, #C084FC 85%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: shear 10s linear infinite;
     }
-    .app{
-      height:100%; display:flex; flex-direction:column; gap:12px; padding:16px;
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(148,163,184,0.12);
+      border-radius: 0.75rem;
     }
-    .titlebar{
-      display:flex; align-items:center; justify-content:space-between;
+    .ring-gradient { position: relative; border-radius: 0.8rem; }
+    .ring-gradient::before {
+      content: ""; position: absolute; inset: -1px; border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255,77,22,.5), rgba(168,85,247,.45) 60%, rgba(255,255,255,.06));
+      z-index: -1; opacity: .35; filter: blur(14px);
     }
-    .brand{ display:flex; align-items:center; gap:10px; }
-    .logo{ width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,#22d3ee,#2dd4bf); box-shadow:0 0 30px rgba(45,212,191,.3); }
-    .brand h1{ font-size:18px; margin:0; letter-spacing:.2px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-    .actions{ display:flex; gap:8px; }
-    button{
-      border:none; border-radius:12px; padding:10px 14px; cursor:pointer; color:#0b0c10; background:#e5e7eb;
-      transition:transform .05s ease, opacity .2s ease, filter .2s ease;
+    /* Thin scrollbars for code/console */
+    .thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .thin-scroll::-webkit-scrollbar-thumb { background: #2E394D; border-radius: 8px; }
+    .thin-scroll::-webkit-scrollbar-thumb:hover { background: #3a4861; }
+
+    /* circular spinner (windows-ish) */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status-spinner {
+      width: 16px; height: 16px; border-radius: 9999px;
+      border: 2px solid rgba(255,255,255,0.12);
+      border-top-color: #A855F7;   /* preview color */
+      border-right-color: #A855F7;
+      animation: spin .7s linear infinite;
     }
-    button.primary{ background:linear-gradient(135deg,#22d3ee,#2dd4bf); color:#021012; font-weight:600; }
-    button.ghost{ color:var(--text); background:transparent; border:1px solid var(--border); }
-    button:disabled{ opacity:.5; cursor:not-allowed; }
-    button:active{ transform:translateY(1px) }
-    .status{
-      display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    .status-spinner.run {
+      border-top-color: #FF4D16;   /* run color */
+      border-right-color: #FF4D16;
     }
-    .dot{ width:8px; height:8px; border-radius:999px; background:var(--muted); }
-    .dot.ok{ background:var(--ok); box-shadow:0 0 10px rgba(34,197,94,.6); }
-    .dot.run{ background:var(--warn); box-shadow:0 0 10px rgba(245,158,11,.6); }
-    .split{
-      display:grid; grid-template-columns: 1fr 1fr; gap:12px; min-height:0; /* allow children to shrink */
-    }
-    @media (max-width: 1100px){
-      .split{ grid-template-columns: 1fr; }
-    }
-    .card{
-      background:rgba(18,19,24,.8); border:1px solid var(--border); border-radius:var(--radius); padding:14px; min-height:260px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.02);
-    }
-    .card h3{ margin:6px 0 12px; font-size:14px; color:#cbd5e1; letter-spacing:.3px; font-weight:600; font-family: 'Times New Roman', Times, serif; }
-    textarea{
-      width:100%; height:140px; resize:vertical; padding:12px; border-radius:12px; border:1px solid var(--border);
-      background:#0d1117; color:var(--text); font-size:14px; line-height:1.4;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .toolbar{ display:flex; gap:8px; align-items:center; justify-content:space-between; margin:10px 0 6px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-    .kbd{
-      background:#0f172a; color:#e2e8f0; border:1px solid #1e293b; border-bottom-width:2px; border-radius:6px; padding:2px 6px; font-size:12px;
-    }
-    .codewrap{
-      position:relative; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--code);
-    }
-    pre{
-      margin:0; padding:12px; overflow:auto; font-family: 'JetBrains Mono', monospace;
-      font-size:12.5px; line-height:1.45; color:#d1d5db; tab-size:2;
-    }
-    .copybtn{
-      position:absolute; top:8px; right:8px; font-size:12px; padding:6px 10px; border-radius:10px;
-      background:#0b0c10; color:#cbd5e1; border:1px solid var(--border);
-    }
-    .console{
-      height:220px; background:#0a0a0a; border:1px solid var(--border); border-radius:12px; overflow:auto; padding:10px;
-      font-family: 'JetBrains Mono', monospace; font-size:12.5px; color:#c9d1d9;
-      box-shadow: inset 0 8px 24px rgba(0,0,0,.35);
-    }
-    .muted{ color:var(--muted); }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .spinner{
-      width:14px; height:14px; border:2px solid rgba(255,255,255,.2); border-top-color:#fff; border-radius:50%;
-      animation:spin .9s linear infinite; display:inline-block;
-    }
-    @keyframes spin{ to { transform: rotate(360deg); } }
-    .chips{ display:flex; gap:8px; flex-wrap:wrap; }
-    .chip{ font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:#cbd5e1; background:#0f1115; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="app">
-    <div class="titlebar">
-      <div class="brand">
-        <div class="logo"></div>
-        <h1>AISolidWorks</h1>
-        <div class="chips">
-          <span class="chip">MVP</span>
-          <span class="chip">Template-first</span>
-          <span class="chip">AI-Powered</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="status"><span id="statusDot" class="dot"></span><span id="statusText">Ready</span></div>
-        <button id="previewBtn" class="ghost">Preview <span class="kbd">Ctrl+Enter</span></button>
-        <button id="runBtn" class="primary">Execute <span class="kbd">Ctrl+Shift+Enter</span></button>
-        <button id="settingsBtn" class="ghost">Settings</button>
-      </div>
-    </div>
 
-    <div class="split">
-      <div class="card">
-        <h3>Design Prompt</h3>
-        <textarea id="prompt" spellcheck="false" placeholder="Describe your SolidWorks design...&#10;Example: Create a 120x80x25 mm box on front plane. Add 8 mm fillet to all edges."></textarea>
-        <div class="toolbar">
-          <div class="muted">💡 Include dimensions, planes, and operations</div>
-          <div class="muted"><span class="kbd">Ctrl+Enter</span> preview • <span class="kbd">Ctrl+Shift+Enter</span> execute</div>
-        </div>
-      </div>
+<body class="bg-night-950 text-steel-400 min-h-screen relative">
+  <!-- ambient forge glow -->
+  <div class="absolute inset-0 bg-forge pointer-events-none"></div>
 
-      <div class="card" style="gap:16px;">
-        <div>
-          <h3 style="display:inline-block; margin-right:12px;">Execution Plan</h3>
-          <span id="planBadges" class="muted"></span>
-        </div>
-        <div class="codewrap">
-          <button class="copybtn" data-copy-target="plan">Copy Plan</button>
-          <pre id="plan">// Plan will appear here after preview</pre>
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="sticky top-0 z-20 backdrop-blur-sm bg-night-900/70 border-b border-white/5">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="relative w-10 h-10 rounded-lg overflow-hidden brand-gradient shadow-forge flex items-center justify-center">
+            <img src="./assets/forgeai-logo.png" alt="ForgeAI" class="w-full h-full object-contain" onerror="this.style.display='none'"/>
+            <svg class="absolute inset-0 m-auto w-6 h-6 text-black/80" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 14h16a1 1 0 0 1 0 2h-2l-1 3H7l-1-3H4a1 1 0 1 1 0-2zM9 8h6v2H9z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-lg font-semibold tracking-tight brand-text leading-none">ForgeAI</div>
+            <div class="text-[11px] text-steel-500/80 -mt-0.5">Prompt → Plan → Macro</div>
+          </div>
+          <div class="hidden md:flex items-center gap-2 ml-3">
+            <span class="px-2 py-0.5 border border-white/10 rounded-full text-[11px] text-steel-300 bg-white/5">v1.0</span>
+            <span class="px-2 py-0.5 border border-white/10 rounded-full text-[11px] text-mag-500 bg-white/5">AI-Powered</span>
+          </div>
         </div>
 
-        <h3>Generated VBScript</h3>
-        <div class="codewrap">
-          <button class="copybtn" data-copy-target="code">Copy Code</button>
-          <pre id="code">// VBScript will be generated here</pre>
-        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 text-xs">
+            <!-- NEW status icon + text -->
+            <div id="statusIcon" class="w-2 h-2 rounded-full bg-ember-500 animate-pulse"></div>
+            <span id="statusText" class="text-steel-400">Ready</span>
+          </div>
 
-        <h3>Validation & Warnings</h3>
-        <div class="codewrap">
-          <button class="copybtn" data-copy-target="warnings">Copy</button>
-          <pre id="warnings" class="muted">No warnings detected</pre>
+          <button id="previewBtn"
+                  class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-night-800 hover:bg-night-700 text-steel-300 text-sm transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
+            Preview
+          </button>
+
+          <button id="runBtn"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg brand-gradient text-white font-medium shadow-forge hover:opacity-[.95] transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Forge
+          </button>
         </div>
       </div>
-    </div>
+    </header>
 
-    <div style="flex-shrink: 0;">
-      <div class="row" style="margin:0 0 12px 0;">
-        <h3 style="margin:0; font-size:15px;">Execution Log</h3>
-        <span id="runSpinner" class="spinner" style="display:none;"></span>
+    <!-- Main -->
+    <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-6 space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Prompt -->
+        <section class="ring-gradient p-[1px]">
+          <div class="card p-6">
+            <h2 class="text-base font-semibold text-white mb-4">Design Prompt</h2>
+
+            <textarea id="prompt"
+              class="code-block w-full h-44 bg-night-850 border border-white/10 rounded-md p-4 text-[13px] text-steel-300 placeholder:opacity-60 focus:outline-none focus:ring-2 focus:ring-ember-500/40 focus:border-ember-500/60 transition thin-scroll"
+              placeholder="Describe your SolidWorks design…
+Example: Create a 120x80x25 mm box on the Front Plane. Add 8 mm fillet to all outer edges."
+              spellcheck="false"></textarea>
+
+            <div class="mt-3 flex items-center justify-between text-[12px] text-steel-500">
+              <div>💡 Include plane, dimensions, and ops (extrude, cut, fillet)</div>
+              <div class="flex items-center gap-1">
+                <kbd class="px-1.5 py-0.5 bg-night-800 border border-white/10 rounded">Ctrl</kbd>+
+                <kbd class="px-1.5 py-0.5 bg-night-800 border border-white/10 rounded">Enter</kbd>
+                <span class="ml-1 mr-3">preview</span>
+                <kbd class="px-1.5 py-0.5 bg-night-800 border border-white/10 rounded">Ctrl</kbd>+
+                <kbd class="px-1.5 py-0.5 bg-night-800 border border-white/10 rounded">Shift</kbd>+
+                <kbd class="px-1.5 py-0.5 bg-night-800 border border-white/10 rounded">Enter</kbd>
+                <span class="ml-1">forge</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Plan + Code -->
+        <div class="space-y-6">
+          <!-- Plan -->
+          <section class="ring-gradient p-[1px]">
+            <div class="card p-6">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-semibold text-white">Execution Plan</h2>
+                <span id="planBadges" class="text-xs text-steel-500"></span>
+              </div>
+              <div class="relative">
+                <button id="copyPlanBtn"
+                        class="absolute top-2 right-2 px-2.5 py-1 text-xs rounded bg-night-800 border border-white/10 hover:bg-night-700 text-steel-300 transition">
+                  Copy
+                </button>
+                <pre id="plan" class="code-block bg-night-900 border border-white/10 rounded-md p-4 text-[12.5px] text-steel-300 h-40 overflow-auto thin-scroll">// Plan will appear here after preview</pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- Code -->
+          <section class="ring-gradient p-[1px]">
+            <div class="card p-6">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-semibold text-white">Generated VBScript</h2>
+              </div>
+              <div class="relative">
+                <button id="copyCodeBtn"
+                        class="absolute top-2 right-2 px-2.5 py-1 text-xs rounded bg-night-800 border border-white/10 hover:bg-night-700 text-steel-300 transition">
+                  Copy
+                </button>
+                <pre id="code" class="code-block bg-night-900 border border-white/10 rounded-md p-4 text-[12.5px] text-steel-300 h-40 overflow-auto thin-scroll">// VBScript will be generated here</pre>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-      <div id="logs" class="console">➤ System ready. Enter a design prompt to begin...</div>
-    </div>
+
+      <!-- Console -->
+      <section class="ring-gradient p-[1px]">
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-semibold text-white">Execution Log</h2>
+            <div id="runSpinner" class="w-4 h-4 border-2 border-ember-500 border-t-transparent rounded-full animate-spin hidden"></div>
+          </div>
+          <div id="logs" class="code-block bg-night-900 border border-white/10 rounded-md p-4 h-36 overflow-auto thin-scroll text-[12.5px] text-steel-300">
+➤ System ready. Enter a design prompt to begin…
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script src="./renderer.js"></script>

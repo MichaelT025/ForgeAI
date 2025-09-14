@@ -1,102 +1,137 @@
-const $ = (id) => document.getElementById(id);
+// renderer.js — ForgeAI UI glue with status modes (Ready / Creating preview… / Forging…)
+(() => {
+  // ----- IPC helpers -----
+  const invoke = (ch, ...args) =>
+    (window.api?.invoke?.(ch, ...args)) ??
+    (window.electron?.invoke?.(ch, ...args)) ??
+    Promise.reject(new Error('IPC invoke not available'));
 
-// Elements
-const promptEl = $('prompt');
-const planEl = $('plan');
-const codeEl = $('code');
-const warnEl = $('warnings');
-const logsEl = $('logs');
-const statusDot = $('statusDot');
-const statusText = $('statusText');
-const runSpinner = $('runSpinner');
-const planBadges = $('planBadges');
+  const on = (ch, fn) => {
+    if (window.api?.on) return window.api.on(ch, (_, data) => fn(data));
+    if (window.electron?.on) return window.electron.on(ch, (_, data) => fn(data));
+    console.warn('IPC on not available for', ch);
+  };
 
-// Helpers
-function setStatus(mode) {
-  // mode: 'idle' | 'preview' | 'running' | 'done' | 'error'
-  const dot = statusDot.classList;
-  dot.remove('ok','run');
-  switch (mode) {
-    case 'preview':
-      statusText.textContent = 'Preview ready';
-      dot.add('ok');
-      break;
-    case 'running':
-      statusText.textContent = 'Running macro…';
-      dot.add('run');
-      break;
-    case 'done':
-      statusText.textContent = 'Done';
-      dot.add('ok');
-      break;
-    case 'error':
-      statusText.textContent = 'Error';
-      break;
-    default:
-      statusText.textContent = 'Idle';
-  }
-}
+  // ----- DOM -----
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    prompt: $('prompt'),
+    plan: $('plan'),
+    code: $('code'),
+    planBadges: $('planBadges'),
+    logs: $('logs'),
+    runBtn: $('runBtn'),
+    previewBtn: $('previewBtn'),
+    status: $('statusText'),
+    spinner: $('runSpinner'),
+    statusIcon: $('statusIcon'),
+    copyPlanBtn: $('copyPlanBtn'),
+    copyCodeBtn: $('copyCodeBtn'),
+  };
 
-function clearLogs(){ logsEl.textContent = ''; }
-function log(line){ logsEl.textContent += (line || '') + '\n'; logsEl.scrollTop = logsEl.scrollHeight; }
+  // ----- UI utils -----
+  const setStatus = (t) => { if (els.status) els.status.textContent = t; };
+  const setBusy = (busy) => {
+    if (els.spinner) els.spinner.classList.toggle('hidden', !busy);
+    if (els.runBtn) els.runBtn.disabled = busy;
+    if (els.previewBtn) els.previewBtn.disabled = busy;
+  };
 
-async function doPreview() {
-  const res = await window.AISW.previewFromPrompt(promptEl.value);
-  planEl.textContent = res.plan || '(no plan)';
-  codeEl.textContent = res.vbs || '(no code)';
-  warnEl.textContent = (res.warnings && res.warnings.length) ? res.warnings.join('\n') : '(none)';
-
-  // Tiny badges extracted from plan
-  planBadges.innerHTML = '';
-  const plane = (res.plan || '').match(/Plane:\s*([a-z]+)/i)?.[1];
-  const size = (res.plan || '').match(/Box:\s*([^\n]+)/i)?.[1];
-  const fillet = (res.plan || '').match(/Fillet:\s*([^\n]+)/i)?.[1];
-  const parts = [plane && `Plane: ${plane}`, size && `Box: ${size}`, fillet && `Fillet: ${fillet}`].filter(Boolean);
-  if (parts.length) planBadges.textContent = parts.join(' • ');
-
-  setStatus('preview');
-}
-
-async function doRun() {
-  setStatus('running'); runSpinner.style.display = '';
-  clearLogs();
-  // preview first so the right code is shown
-  await doPreview();
-  await window.AISW.runFromPrompt(promptEl.value);
-}
-
-$('previewBtn').addEventListener('click', doPreview);
-$('runBtn').addEventListener('click', doRun);
-
-// Copy buttons
-document.querySelectorAll('.copybtn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const target = btn.getAttribute('data-copy-target');
-    const el = $(target);
-    try {
-      await navigator.clipboard.writeText(el.textContent || '');
-      btn.textContent = 'Copied';
-      setTimeout(() => btn.textContent = 'Copy', 900);
-    } catch (e) {
-      btn.textContent = 'Failed';
-      setTimeout(() => btn.textContent = 'Copy', 900);
+  // NEW: switch the little status graphic + text
+  const setMode = (mode) => {
+    if (!els.statusIcon) return;
+    // reset icon
+    els.statusIcon.className = '';
+    if (mode === 'preview') {
+      els.statusIcon.className = 'status-spinner';         // magenta spinner
+      setStatus('Creating preview…');
+    } else if (mode === 'running') {
+      els.statusIcon.className = 'status-spinner run';     // ember/orange spinner
+      setStatus('Forging…');
+    } else {
+      els.statusIcon.className = 'w-2 h-2 rounded-full bg-ember-500 animate-pulse';
+      setStatus('Ready');
     }
+  };
+
+  const setPlan = (text, warnings = []) => {
+    els.plan.textContent = text || '// (no plan)';
+    const badge = warnings.length
+      ? `⚠ ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`
+      : '✓ clean';
+    els.planBadges.textContent = badge;
+  };
+  const setCode = (text) => { els.code.textContent = text || '// (no code)'; };
+  const clearLogs = () => { els.logs.textContent = ''; };
+  const log = (line) => {
+    if (!line) return;
+    els.logs.textContent += (line.endsWith('\n') ? line : line + '\n');
+    els.logs.scrollTop = els.logs.scrollHeight;
+  };
+
+  // Copy buttons
+  const copyFrom = (fromId, btnId) => {
+    const src = $(fromId);
+    if (!src) return;
+    const text = src.innerText || '';
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = $(btnId); if (!btn) return;
+      const old = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = old, 900);
+    }).catch(() => {});
+  };
+  els.copyPlanBtn?.addEventListener('click', () => copyFrom('plan', 'copyPlanBtn'));
+  els.copyCodeBtn?.addEventListener('click', () => copyFrom('code', 'copyCodeBtn'));
+
+  // ----- Actions -----
+  async function doPreview() {
+    const prompt = (els.prompt.value || '').trim();
+    if (!prompt) return;
+    setBusy(true); setMode('preview');
+    try {
+      const res = await invoke('preview:fromPrompt', prompt);
+      setPlan(res?.plan, res?.warnings || []);
+      setCode(res?.vbs);
+      if (res?.warnings?.length) log('[WARN] ' + res.warnings.join('\n[WARN] '));
+    } catch (err) {
+      setPlan('// Preview failed', ['Preview error']);
+      setCode('// ' + (err?.message || String(err)));
+      log('[ERROR] ' + (err?.message || String(err)));
+    } finally {
+      setBusy(false); setMode('ready');
+    }
+  }
+
+  async function doRun() {
+    const prompt = (els.prompt.value || '').trim();
+    if (!prompt) return;
+    clearLogs();
+    setBusy(true); setMode('running');
+    log('➤ Forging macro…');
+
+    try {
+      await invoke('run:fromPrompt', prompt);
+      // logs stream via runner:* events below
+    } catch (err) {
+      log('[ERROR] ' + (err?.message || String(err)));
+      setBusy(false); setMode('ready');
+    }
+  }
+
+  // ----- Wire buttons -----
+  els.previewBtn?.addEventListener('click', doPreview);
+  els.runBtn?.addEventListener('click', doRun);
+
+  // Keyboard shortcuts (mirror the hints in UI)
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doPreview(); }
+    else if (e.ctrlKey && e.shiftKey && e.key === 'Enter') { e.preventDefault(); doRun(); }
   });
-});
 
-// Log streaming from main
-window.AISW.onLog(msg => { log(msg); });
-window.AISW.onError(msg => { log('[ERROR] ' + msg); setStatus('error'); });
-window.AISW.onDone(_ => { setStatus('done'); runSpinner.style.display = 'none'; });
+  // ----- Stream logs from main -----
+  on('runner:log',  (line) => log(String(line).trimEnd()));
+  on('runner:error',(msg)  => log('[ERROR] ' + String(msg)));
+  on('runner:done', (_msg) => { log('➤ Done'); setBusy(false); setMode('ready'); });
 
-// Keyboard shortcuts
-window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doPreview(); }
-  if (e.ctrlKey && e.shiftKey && e.key === 'Enter') { e.preventDefault(); doRun(); }
-});
-
-// Seed example prompt on first load
-if (!promptEl.value) {
-  promptEl.value = 'Create a 120x80x25 mm box on front plane. Add 8 mm fillet to all edges.';
-}
-setStatus('idle');
+  // init
+  setMode('ready');
+})();
