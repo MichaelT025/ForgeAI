@@ -6,3 +6,4 @@ tmp/
 *.log
 store/*.json
 .claude
+local_resources/
