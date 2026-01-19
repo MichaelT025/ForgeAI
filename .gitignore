@@ -1,9 +1,102 @@
-node_modules/
-.env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
 dist/
-tmp/
-.DS_Store
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
 *.log
-store/*.json
-.claude
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Data files (generated during testing)
+data/*.sldprt
+data/*.sldasm
+data/*.slddrw
+data/screenshots/
+
+# Configuration (keep templates)
+config/*.local.toml
+
+# Local development resources
 local_resources/
+
+# Claude Desktop
+.claude/
+
+# Distribution archives
+*.tar.gz
+*.zip
+
+# Temporary SDK downloads
+python-sdk-tmp/
+%TEMP%/
+
+# Internal planning files
+.sisyphus/
