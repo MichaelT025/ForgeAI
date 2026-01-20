@@ -99,3 +99,4 @@ python-sdk-tmp/
 %TEMP%/
 
 # Internal planning files
+.sisyphus/
