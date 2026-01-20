@@ -99,6 +99,15 @@ mcp = create_server()
 
 
 # =============================================================================
+# Import Tools (registers them with the server via @mcp.tool decorator)
+# =============================================================================
+
+# Import tool modules to register them with the MCP server
+# Each module uses @mcp.tool() decorator which registers tools at import time
+import mcp_tools.document_tools  # noqa: F401, E402 - registers create_new_part, save_part
+
+
+# =============================================================================
 # Signal Handlers
 # =============================================================================
 

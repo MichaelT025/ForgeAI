@@ -12,7 +12,7 @@
 Creates a new blank part document.
 
 **Parameters:**
-- `template` (optional, string): Template path, or None for default
+- `template_path` (optional, string): Template path, or None for default
 
 **Returns:** Success message with document info + screenshot
 
@@ -20,7 +20,7 @@ Creates a new blank part document.
 Saves the current part document to the specified file path.
 
 **Parameters:**
-- `path` (required, string): Full file path (e.g., "C:\\Users\\...\\MyPart.SLDPRT")
+- `file_path` (required, string): Full file path (e.g., "C:\\Users\\...\\MyPart.SLDPRT")
 
 **Returns:** Success message with saved path
 

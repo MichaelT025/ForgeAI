@@ -44,7 +44,7 @@ This example demonstrates the core workflow of creating a part, adding a sketch,
 **User**: Save it as MyPart.SLDPRT
 
 **Claude**: I'll save the part to your specified path.
-- `save_part(path="C:\Users\...\MyPart.SLDPRT")`
+- `save_part(file_path="C:\Users\...\MyPart.SLDPRT")`
 
 ✓ Saved as MyPart.SLDPRT
 
