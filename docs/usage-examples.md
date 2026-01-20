@@ -17,7 +17,7 @@ This example demonstrates the core workflow of creating a part, adding a sketch,
 **Claude**: I'll create a new part and draw the rectangle.
 - `create_new_part()`
 - `create_sketch(plane="Front Plane")`
-- `draw_rectangle(x=0, y=0, width=100, height=50)`
+- `draw_rectangle(center_x=0, center_y=0, width=100, height=50)`
 - `close_sketch()`
 
 ✓ Created new part document
@@ -55,7 +55,7 @@ You can create complex geometry by combining different sketch entities on variou
 **Examples of sketch commands:**
 
 - **Circles**: "Draw a 20mm radius circle at the origin"
-  - `draw_circle(x=0, y=0, radius=20)`
+  - `draw_circle(center_x=0, center_y=0, radius=20)`
 - **Lines**: "Draw a line from 0,0 to 50,50"
   - `draw_line(x1=0, y1=0, x2=50, y2=50)`
 - **Polygons**: "Create a 6-sided polygon with a 30mm radius"

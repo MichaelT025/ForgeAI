@@ -52,8 +52,8 @@ Exits sketch mode.
 
 #### draw_rectangle
 **Parameters:**
-- `x` (optional, number): Center X in mm (default: 0)
-- `y` (optional, number): Center Y in mm (default: 0)
+- `center_x` (required, number): Center X in mm
+- `center_y` (required, number): Center Y in mm
 - `width` (required, number): Width in mm
 - `height` (required, number): Height in mm
 
@@ -61,8 +61,8 @@ Exits sketch mode.
 
 #### draw_circle
 **Parameters:**
-- `x` (optional, number): Center X in mm (default: 0)
-- `y` (optional, number): Center Y in mm (default: 0)
+- `center_x` (required, number): Center X in mm
+- `center_y` (required, number): Center Y in mm
 - `radius` (required, number): Radius in mm
 
 **Returns:** Success message + screenshot
@@ -89,8 +89,8 @@ Exits sketch mode.
 
 #### draw_polygon
 **Parameters:**
-- `x` (optional, number): Center X in mm (default: 0)
-- `y` (optional, number): Center Y in mm (default: 0)
+- `center_x` (required, number): Center X in mm
+- `center_y` (required, number): Center Y in mm
 - `radius` (required, number): Radius in mm
 - `sides` (required, integer): Number of sides
 
