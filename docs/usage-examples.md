@@ -36,7 +36,7 @@ This example demonstrates the core workflow of creating a part, adding a sketch,
 **User**: Add 5mm fillets to all edges
 
 **Claude**: I'll apply the fillets to the edges of the box.
-- `fillet(radius=5, edges="all")`
+- `fillet(radius=5)`
 
 ✓ Applied 5mm fillets to 12 edges
 [Screenshot showing filleted box]

@@ -106,6 +106,7 @@ mcp = create_server()
 # Each module uses @mcp.tool() decorator which registers tools at import time
 import mcp_tools.document_tools  # noqa: F401, E402 - registers create_new_part, save_part
 import mcp_tools.sketch_tools  # noqa: F401, E402 - registers sketch tools
+import mcp_tools.feature_tools  # noqa: F401, E402 - registers extrude, fillet, chamfer
 
 
 # =============================================================================
