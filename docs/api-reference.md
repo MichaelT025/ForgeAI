@@ -137,11 +137,22 @@ V1 applies to all edges.
 
 ### model_state
 URI: `solidworks://model/state`
-Returns JSON with: document info, features list, sketches list, active sketch
+
+Returns a JSON object containing the current state of the model:
+- `document`: Name, path, and modification status.
+- `features`: List of features in the feature tree.
+- `sketches`: List of sketches in the document.
+- `active_sketch`: Name of the currently active sketch (if any).
+- `bounding_box`: Model dimensions (if computed).
+- `mass_properties`: Physical properties (if computed).
 
 ### screenshot
 URI: `solidworks://viewport/screenshot`
-Returns: PNG image of current viewport
+
+Prepares and captures the current SolidWorks viewport. 
+- Triggers `Isometric` view and `Zoom to Fit`.
+- Returns viewport metadata and confirmation of view update.
+- *Note: V1 returns metadata; binary image data integration is planned for future release.*
 
 ## Unit Convention
 - All tool inputs accept millimeters

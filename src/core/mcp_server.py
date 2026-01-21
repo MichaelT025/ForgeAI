@@ -108,6 +108,11 @@ import mcp_tools.document_tools  # noqa: F401, E402 - registers create_new_part,
 import mcp_tools.sketch_tools  # noqa: F401, E402 - registers sketch tools
 import mcp_tools.feature_tools  # noqa: F401, E402 - registers extrude, fillet, chamfer
 
+# Import resource modules to register them with the MCP server
+# Each module uses @mcp.resource() decorator which registers resources at import time
+import mcp_resources.model_state  # noqa: F401, E402 - registers solidworks://model/state
+import mcp_resources.screenshot  # noqa: F401, E402 - registers solidworks://viewport/screenshot
+
 
 # =============================================================================
 # Signal Handlers

@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Model state resource (`solidworks://model/state`) providing document, feature, and sketch metadata.
+- Viewport screenshot resource (`solidworks://viewport/screenshot`) that triggers an isometric/fit-to-view update.
+- Unit tests for MCP resources in `tests/unit/test_resources.py`.
+- Registration of resources in MCP server core.
 - Feature operations tools: `extrude`, `fillet`, and `chamfer`.
-- Unit tests for feature tools.
-- Registration of feature tools in MCP server.
-- Export of feature tools in `mcp_tools` package.
